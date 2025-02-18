@@ -1,4 +1,4 @@
-package com.market.category.config;
+package com.market.rating.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
