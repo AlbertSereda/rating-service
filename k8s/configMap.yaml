@@ -2,13 +2,14 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: rating-service-config
+  namespace: all-in-market
 data:
   application.yaml: |
     spring:
       application:
         name: rating-service
       datasource:
-        url: jdbc:postgresql://${PG_DB_HOST:postgresdb}:${PG_DB_PORT:5432}/${POSTGRES_DB_RATING_SERVICE:rating_service_db}
+        url: jdbc:postgresql://${PG_DB_HOST:postgresdb.default.svc.cluster.local}:${PG_DB_PORT:5432}/${POSTGRES_DB_RATING_SERVICE:rating_service_db}
         username: ${PG_DB_USERNAME_RATING_SERVICE:rating_service}
         password: ${PG_DB_PASS_RATING_SERVICE:rating_service}
         driver-class-name: org.postgresql.Driver
@@ -40,39 +41,12 @@ data:
           registration-success: ${KAFKA_TOPIC_REGISTRATION_SUCCESS:registration_success}
           status-order-changed: ${KAFKA_TOPIC_STATUS_ORDER_CHANGED:status_order_changed}
           status-payment-changed: ${KAFKA_TOPIC_STATUS_PAYMENT_CHANGED:status_payment_changed}
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: rating-service
-  labels:
-    app: rating-service
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: rating-service
-  template:
-    metadata:
-      name: rating-service
-      labels:
-        app: rating-service
-    spec:
-      containers:
-        - name: rating-service
-          image: albertsereda/all-in-market-rating-service
-          imagePullPolicy: Always
-          env:
-            - name: SPRING_CONFIG_IMPORT
-              value: file:/config/
-          ports:
-            - containerPort: 8080
-              protocol: TCP
-          volumeMounts:
-            - name: rating-service-config
-              mountPath: /config
-      volumes:
-        - name: rating-service-config
-          configMap:
-            name: rating-service-config
-      restartPolicy: Always
+    
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health, info, prometheus
+      metrics:
+        tags:
+          application: ${spring.application.name}

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rating-service
+  namespace: all-in-market
+  labels:
+    app: rating-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rating-service
+  template:
+    metadata:
+      name: rating-service
+      labels:
+        app: rating-service
+    spec:
+      containers:
+        - name: rating-service
+          image: albertsereda/all-in-market-rating-service
+          imagePullPolicy: Always
+          env:
+            - name: SPRING_CONFIG_IMPORT
+              value: file:/config/
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: rating-service-config
+              mountPath: /config
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+      volumes:
+        - name: rating-service-config
+          configMap:
+            name: rating-service-config
+      restartPolicy: Always
